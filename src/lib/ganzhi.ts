@@ -1,15 +1,15 @@
 import { HEAVENLY_STEMS, EARTHLY_BRANCHES, BRANCH_INDEX } from '../data/constants';
 import type { EarthlyBranch, HeavenlyStem } from '../data/constants';
 import type { GanZhi } from '../types';
+import { getLunarYear, findGoverningJie } from './solarTerms';
 
-// 1900年1月31日 = 庚子年 庚子月 甲戌日（已知基准日）
-// 甲子年：1984年是甲子年，1月1日是甲子年起点参考
+// 甲子年：1984年是甲子年（公历年立春后）
 
-// 年干支：以公历年为基准
-// 1984 = 甲子年 (stem=0, branch=0)
-export function getYearGanzhi(year: number): { stem: HeavenlyStem; branch: EarthlyBranch } {
-  const baseYear = 1984; // 甲子年
-  const diff = year - baseYear;
+// 年干支：以"立春"为界
+// 立春前归上一个农历年；1984 = 甲子年（基准）
+export function getYearGanzhi(date: Date): { stem: HeavenlyStem; branch: EarthlyBranch } {
+  const lunarYear = getLunarYear(date);
+  const diff = lunarYear - 1984;
   const stemIdx = ((diff % 10) + 10) % 10;
   const branchIdx = ((diff % 12) + 12) % 12;
   return {
@@ -18,42 +18,18 @@ export function getYearGanzhi(year: number): { stem: HeavenlyStem; branch: Earth
   };
 }
 
-// 月干支：以节气为界，简化版（按公历月份近似）
-// 实际应按节气，但此处用农历月份近似（误差约3天内）
-// 寅月=正月=2月（节气：立春前后），卯月=二月=3月...
-// 月支：1月=丑月，2月=寅月...12月=丑月（以立春前后为界）
-// 简化：以15号为节气分界点
-export function getMonthGanzhi(
-  year: number, month: number, _day: number
-): { stem: HeavenlyStem; branch: EarthlyBranch } {
-  // 月支（以节气简化，1月=丑, 2月=寅, ..., 12月=子）
-  // 准确来说需要节气，这里用月份-1近似
-  // 寅月 = 公历2月, 月支index=2(寅)
-  // 标准：月建从寅开始，对应地支子(0)...
-  // 月支索引: 1月=丑(1), 2月=寅(2), ..., 11月=子(0), 12月=丑(1)
-  // 但要考虑节气：如果当天在节气前，则属于上个月干支
-  // 简化处理：月份直接对应
-  const monthBranchMap: Record<number, number> = {
-    1: 1,  // 丑
-    2: 2,  // 寅
-    3: 3,  // 卯
-    4: 4,  // 辰
-    5: 5,  // 巳
-    6: 6,  // 午
-    7: 7,  // 未
-    8: 8,  // 申
-    9: 9,  // 酉
-    10: 10, // 戌
-    11: 11, // 亥
-    12: 0,  // 子
-  };
-  const branchIdx = monthBranchMap[month] ?? 0;
-  const branch = EARTHLY_BRANCHES[branchIdx];
+// 月干支：以"节"为界
+// 立春→寅、惊蛰→卯、清明→辰、立夏→巳、芒种→午、小暑→未、
+// 立秋→申、白露→酉、寒露→戌、立冬→亥、大雪→子、小寒→丑
+export function getMonthGanzhi(date: Date): { stem: HeavenlyStem; branch: EarthlyBranch } {
+  const { monthBranchIdx } = findGoverningJie(date);
+  const branch = EARTHLY_BRANCHES[monthBranchIdx];
 
-  // 月干：根据年干推算（五虎遁年起月法）
-  // 甲己年 - 寅月起丙寅; 乙庚年 - 寅月起戊寅; 丙辛年 - 寅月起庚寅; 丁壬年 - 寅月起壬寅; 戊癸年 - 寅月起甲寅
-  const yearStemIdx = (year - 1984 + 1000) % 10;
-  // 寅月天干基准（对应年干的余数0-4）
+  // 月干：根据"农历年"年干推算（五虎遁年起月法）
+  // 甲己年 - 寅月起丙寅; 乙庚年 - 寅月起戊寅; 丙辛年 - 寅月起庚寅;
+  // 丁壬年 - 寅月起壬寅; 戊癸年 - 寅月起甲寅
+  const lunarYear = getLunarYear(date);
+  const yearStemIdx = (((lunarYear - 1984) % 10) + 10) % 10;
   const monthStemBase: Record<number, number> = {
     0: 2, // 甲年 -> 丙(2)
     1: 4, // 乙年 -> 戊(4)
@@ -67,8 +43,8 @@ export function getMonthGanzhi(
     9: 0, // 癸年 -> 甲(0)
   };
   const baseMonthStem = monthStemBase[yearStemIdx] ?? 0;
-  // 寅月是月支第2位（branchIdx=2），从branchIdx=2开始，每增1月干+1
-  const monthOffset = (branchIdx - 2 + 12) % 12;
+  // 寅月是农历年首月（branchIdx=2），其后每月月干+1
+  const monthOffset = (monthBranchIdx - 2 + 12) % 12;
   const stemIdx = (baseMonthStem + monthOffset) % 10;
   return {
     stem: HEAVENLY_STEMS[stemIdx],
@@ -76,22 +52,29 @@ export function getMonthGanzhi(
   };
 }
 
-// 日干支：以1900年1月31日=甲戌日为基准
-// 甲戌：甲=0，戌=10
-const BASE_DATE = new Date(1900, 0, 31); // 1900-01-31 (月份0-indexed)
-const BASE_STEM_IDX = 0;   // 甲
-const BASE_BRANCH_IDX = 10; // 戌
+// 日干支：儒略日 + 六十甲子偏移（已校准：2000-01-01=戊午，2024-01-01=甲子，2026-05-23=丁酉）
+function julianDayNumber(year: number, month: number, day: number): number {
+  let y = year;
+  let m = month;
+  if (m <= 2) {
+    y -= 1;
+    m += 12;
+  }
+  const A = Math.floor(y / 100);
+  const B = 2 - A + Math.floor(A / 4);
+  return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + day + B - 1524.5;
+}
+
+const DAY_JD_OFFSET = 50;
 
 export function getDayGanzhi(date: Date): { stem: HeavenlyStem; branch: EarthlyBranch } {
-  // 计算距离基准日的天数
-  const msPerDay = 24 * 60 * 60 * 1000;
-  const startOfDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const diff = Math.round((startOfDate.getTime() - BASE_DATE.getTime()) / msPerDay);
-  const stemIdx = ((BASE_STEM_IDX + diff) % 10 + 10) % 10;
-  const branchIdx = ((BASE_BRANCH_IDX + diff) % 12 + 12) % 12;
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const idx = ((Math.floor(julianDayNumber(year, month, day) + DAY_JD_OFFSET) % 60) + 60) % 60;
   return {
-    stem: HEAVENLY_STEMS[stemIdx],
-    branch: EARTHLY_BRANCHES[branchIdx],
+    stem: HEAVENLY_STEMS[idx % 10],
+    branch: EARTHLY_BRANCHES[idx % 12],
   };
 }
 
@@ -142,13 +125,10 @@ export function calcXunKong(stem: HeavenlyStem, branch: EarthlyBranch): [Earthly
 
 // 主函数：给定 Date，返回完整干支信息
 export function dateToGanzhi(date: Date): GanZhi {
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
   const hour = date.getHours();
 
-  const yearGz = getYearGanzhi(year);
-  const monthGz = getMonthGanzhi(year, month, day);
+  const yearGz = getYearGanzhi(date);
+  const monthGz = getMonthGanzhi(date);
   const dayGz = getDayGanzhi(date);
   const dayGzStemIdx = HEAVENLY_STEMS.indexOf(dayGz.stem);
   const hourGz = getHourGanzhi(dayGzStemIdx, hour);

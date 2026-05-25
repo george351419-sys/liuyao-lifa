@@ -2,38 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── 古风淡雅色系：宣纸 · 墨迹 · 青花 · 朱砂 ── */
 :root {
-  --bg-base: #0D1117;
-  --bg-surface: #161B22;
-  --bg-elevated: #21262D;
-  --border: #30363D;
-  --text-primary: #E6EDF3;
-  --text-secondary: #8B949E;
-  --text-muted: #484F58;
+  --bg-base:    #F0EBE0;   /* 宣纸底色 */
+  --bg-surface: #FAF7F0;   /* 白绢面 */
+  --bg-elevated:#EDE5D5;   /* 竹简纹 */
+  --border:     #C8B89A;   /* 淡墨边 */
+  --border-soft:#DDD0BC;   /* 更淡边 */
 
-  --gold-bright: #F0C040;
-  --gold-mid: #D4A017;
-  --gold-dim: #7D5A0A;
-  --gold-glow: rgba(212,160,23,0.15);
+  --text-primary:   #1F1810; /* 浓墨 */
+  --text-secondary: #5A4B38; /* 淡墨 */
+  --text-muted:     #9C8E7A; /* 枯墨 */
 
-  --yao-blue: #60A5FA;
-  --yao-blue-bg: rgba(96,165,250,0.12);
-  --yao-blue-border: rgba(96,165,250,0.5);
-  --yao-orange: #FB923C;
-  --yao-orange-bg: rgba(251,146,60,0.12);
-  --yao-orange-border: rgba(251,146,60,0.5);
-  --yao-green: #4ADE80;
-  --yao-red: #F87171;
-  --yao-yellow-bg: rgba(251,191,36,0.15);
-  --yao-purple-border: rgba(167,139,250,0.6);
-  --yao-gray-bg: rgba(156,163,175,0.1);
-  --moving-yao: #F0C040;
-  --hidden-yao: rgba(240,192,64,0.4);
+  /* 金色（书签·强调） */
+  --gold-bright: #B8860B;
+  --gold-mid:    #9A6F0A;
+  --gold-dim:    #7A5208;
+  --gold-glow:   rgba(154,111,10,0.12);
 
-  --success: #3FB950;
-  --warning: #D29922;
-  --error: #F85149;
-  --info: #58A6FF;
+  /* 月建相关 → 青花蓝 */
+  --yao-blue:        #2E6EA8;
+  --yao-blue-bg:     rgba(46,110,168,0.07);
+  --yao-blue-border: rgba(46,110,168,0.38);
+
+  /* 日辰相关 → 赭石橙 */
+  --yao-orange:        #B85C14;
+  --yao-orange-bg:     rgba(184,92,20,0.07);
+  --yao-orange-border: rgba(184,92,20,0.38);
+
+  /* 功能色 */
+  --yao-green:       #3A7A50;   /* 翠绿（回头生） */
+  --yao-red:         #B83232;   /* 朱砂（回头克） */
+  --yao-yellow-bg:   rgba(180,140,30,0.10);
+  --yao-purple-border: rgba(100,60,140,0.40);
+  --yao-gray-bg:     rgba(130,120,110,0.08);
+
+  /* 动爻圆圈色 */
+  --moving-yao: #9A6F0A;
+
+  /* 吉凶结论色 */
+  --success: #3A7A50; /* 翠绿·吉 */
+  --warning: #9A741A; /* 琥珀·不吉 */
+  --error:   #B83232; /* 朱砂·凶 */
+  --info:    #2E6EA8;
 }
 
 * { box-sizing: border-box; }
@@ -41,114 +52,133 @@
 body {
   margin: 0;
   background-color: var(--bg-base);
+  background-image:
+    radial-gradient(circle at 20% 80%, rgba(184,92,20,0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(46,110,168,0.04) 0%, transparent 50%);
   color: var(--text-primary);
-  font-family: 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
-/* 卡片 */
+/* ── 卡片 ── */
 .card {
   background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 4px rgba(90,75,56,0.08);
 }
-.card-gold-top {
+.card-red-top {
   background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-top: 2px solid var(--gold-mid);
-  border-radius: 12px;
-  padding: 16px;
+  border: 1px solid var(--border-soft);
+  border-top: 2px solid #B83232;
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 6px rgba(90,75,56,0.10);
 }
 
-/* 按钮 */
+/* ── 按钮 ── */
 .btn-primary {
   background: var(--gold-mid);
-  color: #0D1117;
+  color: #FAF7F0;
   border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
+  border-radius: 6px;
+  padding: 11px 24px;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14px;
   cursor: pointer;
   width: 100%;
   transition: filter 150ms ease-out;
+  letter-spacing: 0.5px;
 }
-.btn-primary:hover { filter: brightness(1.12); }
-.btn-primary:active { filter: brightness(0.95); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary:hover  { filter: brightness(1.1); }
+.btn-primary:active { filter: brightness(0.92); }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .btn-secondary {
   background: transparent;
   color: var(--text-secondary);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 16px;
+  border-radius: 6px;
+  padding: 7px 14px;
   font-size: 13px;
   cursor: pointer;
-  transition: background 150ms ease-out;
+  transition: background 150ms ease-out, border-color 150ms;
 }
-.btn-secondary:hover { background: var(--bg-elevated); }
+.btn-secondary:hover { background: var(--bg-elevated); border-color: var(--gold-dim); }
 
-/* 输入框 */
+/* ── 输入框 ── */
 .input-field {
-  background: var(--bg-elevated);
+  background: var(--bg-surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
+  border-radius: 6px;
+  padding: 9px 12px;
   color: var(--text-primary);
   font-size: 14px;
   width: 100%;
   transition: border-color 150ms ease, box-shadow 150ms ease;
   outline: none;
+  font-family: inherit;
 }
 .input-field:focus {
   border-color: var(--gold-mid);
-  box-shadow: 0 0 0 3px rgba(212,160,23,0.2);
+  box-shadow: 0 0 0 2px rgba(154,111,10,0.18);
 }
 
-/* 类别选择按钮 */
+/* ── 类别选择 ── */
 .category-btn {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 12px;
+  border-radius: 6px;
+  padding: 7px 12px;
   color: var(--text-secondary);
   font-size: 13px;
   cursor: pointer;
   transition: all 150ms ease;
   white-space: nowrap;
 }
-.category-btn:hover { border-color: var(--gold-dim); color: var(--gold-bright); }
+.category-btn:hover { border-color: var(--gold-mid); color: var(--gold-mid); }
 .category-btn.selected {
-  background: rgba(212,160,23,0.15);
+  background: rgba(154,111,10,0.10);
   border-color: var(--gold-mid);
-  color: var(--gold-bright);
+  color: var(--gold-mid);
+  font-weight: 600;
 }
 
-/* 能量得分 */
-.score-positive { color: var(--yao-green); font-size: 11px; font-weight: 600; font-family: monospace; }
-.score-negative { color: var(--yao-red); font-size: 11px; font-weight: 600; font-family: monospace; }
-.score-zero { color: var(--text-muted); font-size: 11px; font-weight: 600; font-family: monospace; }
+/* ── 能量得分（统一灰色，不区分正负色） ── */
+.score-val { color: var(--text-muted); font-size: 10px; font-family: monospace; }
 
-/* 世/应 badge */
-.badge-world { background: var(--gold-mid); color: #0D1117; font-size: 11px; font-weight: 700; padding: 1px 4px; border-radius: 4px; }
-.badge-response { background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-secondary); font-size: 11px; padding: 1px 4px; border-radius: 4px; }
+/* ── 世/应（纯文字，无框无底色） ── */
+.badge-world    { font-size: 11px; font-weight: 700; color: var(--gold-mid); }
+.badge-response { font-size: 11px; color: var(--text-secondary); }
 
-/* 吉凶结论 */
-.verdict-ji { color: var(--success); font-size: 20px; font-weight: 700; }
-.verdict-xiong { color: var(--error); font-size: 20px; font-weight: 700; }
-.verdict-buji { color: var(--warning); font-size: 20px; font-weight: 700; }
+/* ── 吉凶结论 ── */
+.verdict-ji    { color: var(--success); font-size: 20px; font-weight: 700; }
+.verdict-xiong { color: var(--error);   font-size: 20px; font-weight: 700; }
+.verdict-buji  { color: var(--warning); font-size: 20px; font-weight: 700; }
 
-/* 入墓虚线框 */
-.tomb-blue   { outline: 1.5px dashed var(--yao-blue-border); border-radius: 3px; }
-.tomb-orange { outline: 1.5px dashed var(--yao-orange-border); border-radius: 3px; }
-.tomb-yellow { outline: 1.5px dashed rgba(251,191,36,0.5); border-radius: 3px; }
-.tomb-purple { outline: 1.5px dashed var(--yao-purple-border); border-radius: 3px; }
-.tomb-gray   { outline: 1.5px dashed rgba(156,163,175,0.4); border-radius: 3px; }
+/* ── 入墓虚线框（被入墓字） ── */
+.tomb-blue   { outline: 1.5px dashed var(--yao-blue-border);   border-radius: 2px; }
+.tomb-orange { outline: 1.5px dashed var(--yao-orange-border); border-radius: 2px; }
+.tomb-yellow { outline: 1.5px dashed rgba(180,140,30,0.45);    border-radius: 2px; }
+.tomb-purple { outline: 1.5px dashed var(--yao-purple-border); border-radius: 2px; }
+.tomb-gray   { outline: 1.5px dashed rgba(130,120,110,0.35);   border-radius: 2px; }
 
-/* 反吟/伏吟 */
-.fanyin-line { border-bottom: 1.5px dashed var(--text-secondary); }
-.fuyin-line  { border-bottom: 1.5px solid var(--text-secondary); }
+/* ── 墓库容器底色（盛装入墓字的墓库本身） ── */
+.tomb-fill-blue   { background: rgba(46,110,168,0.22);  border-radius: 2px; padding: 0 2px; }
+.tomb-fill-orange { background: rgba(184,92,20,0.22);   border-radius: 2px; padding: 0 2px; }
+.tomb-fill-yellow { background: rgba(180,140,30,0.28);  border-radius: 2px; padding: 0 2px; }
+.tomb-fill-purple { background: rgba(100,60,140,0.20);  border-radius: 2px; padding: 0 2px; }
+
+/* ── 反吟/伏吟 ── */
+.fanyin-line { border-bottom: 1.5px dashed var(--text-muted); padding-bottom: 1px; }
+.fuyin-line  { border-bottom: 1.5px solid  var(--text-muted); padding-bottom: 1px; }
+
+/* ── 古风分隔线 ── */
+.divider-ink {
+  border: none;
+  border-top: 1px solid var(--border-soft);
+  margin: 4px 0;
+}

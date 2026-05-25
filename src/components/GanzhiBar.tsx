@@ -2,18 +2,27 @@ import type { GanZhi } from '../types';
 
 interface Props {
   ganzhi: GanZhi;
+  tombFill?: { month: boolean; day: boolean };
 }
 
-export function GanzhiBar({ ganzhi }: Props) {
+export function GanzhiBar({ ganzhi, tombFill }: Props) {
   const { yearStem, yearBranch, monthStem, monthBranch, dayStem, dayBranch, hourStem, hourBranch, monthXunKong, dayXunKong } = ganzhi;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, fontSize: 14, color: 'var(--text-primary)' }}>
-        <span>{yearStem}{yearBranch}年</span>
-        <span>{monthStem}{monthBranch}月</span>
-        <span>{dayStem}{dayBranch}日</span>
-        <span>{hourStem}{hourBranch}时</span>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 14, color: 'var(--text-primary)', fontFamily: 'serif', letterSpacing: 0.5 }}>
+        <span>{yearStem}{yearBranch}<span style={{ color: 'var(--text-muted)', fontSize: 11 }}>年</span></span>
+        <span>
+          {monthStem}
+          <span className={tombFill?.month ? 'tomb-fill-blue' : undefined}>{monthBranch}</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>月</span>
+        </span>
+        <span>
+          {dayStem}
+          <span className={tombFill?.day ? 'tomb-fill-orange' : undefined}>{dayBranch}</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>日</span>
+        </span>
+        <span>{hourStem}{hourBranch}<span style={{ color: 'var(--text-muted)', fontSize: 11 }}>时</span></span>
       </div>
       <div style={{ display: 'flex', gap: 12, fontSize: 11, color: 'var(--text-secondary)' }}>
         <span>

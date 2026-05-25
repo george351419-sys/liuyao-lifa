@@ -12,8 +12,12 @@ function isMuKuBranch(branch: EarthlyBranch): boolean {
   return branch === '辰' || branch === '戌' || branch === '丑' || branch === '未';
 }
 
-export function checkAllTombs(yaos: YaoState[], ganzhi: GanZhi): void {
+export function checkAllTombs(
+  yaos: YaoState[],
+  ganzhi: GanZhi,
+): { month: boolean; day: boolean } {
   const { monthBranch, dayBranch } = ganzhi;
+  const tombFill = { month: false, day: false };
 
   for (const yao of yaos) {
     const el = BRANCH_ELEMENT[yao.yaoBranch];
@@ -21,24 +25,25 @@ export function checkAllTombs(yaos: YaoState[], ganzhi: GanZhi): void {
     // 入月建墓：月建是四墓库，且该爻五行进入月建墓库
     if (isMuKuBranch(monthBranch) && entersTomu(el, monthBranch)) {
       if (!yao.tombType) yao.tombType = 'month';
+      tombFill.month = true;
       continue;
     }
 
     // 入日辰墓：日辰是四墓库，且该爻五行进入日辰墓库
     if (isMuKuBranch(dayBranch) && entersTomu(el, dayBranch)) {
       if (!yao.tombType) yao.tombType = 'day';
+      tombFill.day = true;
       continue;
     }
 
     // 入动墓：静爻进入某动爻的墓库（动爻是四墓库）
     if (!yao.isMoving && !yao.isHidden) {
-      const hasDongMu = yaos.some(dy => {
-        if (!dy.isMoving) return false;
-        if (!isMuKuBranch(dy.yaoBranch)) return false;
-        return entersTomu(el, dy.yaoBranch);
-      });
-      if (hasDongMu) {
+      const container = yaos.find(dy =>
+        dy.isMoving && isMuKuBranch(dy.yaoBranch) && entersTomu(el, dy.yaoBranch),
+      );
+      if (container) {
         if (!yao.tombType) yao.tombType = 'dong';
+        container.yaoBranchTombFill = 'dong';
         continue;
       }
     }
@@ -47,8 +52,11 @@ export function checkAllTombs(yaos: YaoState[], ganzhi: GanZhi): void {
     if (yao.isMoving && yao.changedBranch) {
       if (isMuKuBranch(yao.changedBranch) && entersTomu(el, yao.changedBranch)) {
         if (!yao.tombType) yao.tombType = 'hua';
+        yao.changedBranchTombFill = 'hua';
         continue;
       }
     }
   }
+
+  return tombFill;
 }

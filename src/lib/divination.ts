@@ -33,6 +33,40 @@ function clampYaoType(n: number): YaoType {
   return c as YaoType;
 }
 
+// 起数法：输入字符串格式 "a b"，两个整数
+// a % 8 → 下卦序号（0-7），b % 6 → 上卦序号（0-5），当前分钟 % 6 + 1 → 动爻位置
+// 生成六爻：下卦三爻 + 上卦三爻，动爻位置设为老阳(3)，其余按序号奇偶确定阴阳
+const TRIGRAM_LINES: [0|1, 0|1, 0|1][] = [
+  [1, 1, 1], // 0: 乾
+  [1, 0, 0], // 1: 震
+  [0, 1, 0], // 2: 坎
+  [1, 0, 1], // 3: 艮  (实际纳甲顺序按文王八卦：乾兑离震巽坎艮坤)
+  [0, 0, 0], // 4: 坤
+  [0, 1, 1], // 5: 巽
+  [1, 0, 1], // 6: 坎(重)
+  [0, 0, 1], // 7: 艮
+];
+
+export function numberMethod(input: string, time: Date): YaoType[] {
+  const parts = input.trim().split(/\s+/);
+  const a = parseInt(parts[0] ?? '0', 10) || 0;
+  const b = parseInt(parts[1] ?? '0', 10) || 0;
+  const lowerIdx = ((a % 8) + 8) % 8;
+  const upperIdx = ((b % 6) + 6) % 6; // use mod 6 for upper
+  const dongYao = (time.getMinutes() % 6) + 1; // 1-6
+
+  const lowerLines = TRIGRAM_LINES[lowerIdx];
+  const upperLines = TRIGRAM_LINES[upperIdx];
+  const allLines: (0|1)[] = [...lowerLines, ...upperLines];
+
+  const result: YaoType[] = allLines.map((line, i) => {
+    const pos = i + 1; // 1-6
+    if (pos === dongYao) return 3; // 老阳（动爻）
+    return line === 1 ? 1 : 2; // 少阳 or 少阴
+  });
+  return result;
+}
+
 // 从 YaoType 判断是否为阳爻（用于构建本卦线条）
 // 少阳(1)=阳, 老阳(3)=阳, 少阴(2)=阴, 老阴(0)=阴
 export function isYang(yaoType: YaoType): 0 | 1 {

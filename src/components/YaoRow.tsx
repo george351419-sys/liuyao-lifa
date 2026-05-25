@@ -1,195 +1,350 @@
 import type { YaoState } from '../types';
+import type { EarthlyBranch } from '../data/constants';
 import { BRANCH_LABEL } from '../data/constants';
 
 interface Props {
   yao: YaoState;
   isYongShen: boolean;
+  showChangedLine: boolean;
 }
 
-// 爻文字显示（考虑旬空、月破、日破颜色）
-function YaoBranchText({ yao }: { yao: YaoState }) {
-  const label = BRANCH_LABEL[yao.yaoBranch] ?? yao.yaoBranch;
-  let color = 'var(--text-primary)';
-  let isItalic = false;
-  let withParens = false;
+// ─── 列宽（与 HexagramBoard 共享）───
+// 世应 六神 六亲 地支 爻线 动标 ┃ 变爻线 变六亲 变地支
+export const COL = '13px 20px 28px minmax(54px,1fr) minmax(40px,1fr) 16px 3px minmax(40px,1fr) 22px minmax(65px,1.5fr)';
+export const GAP = 2;
 
-  // 月建旬空：蓝色+括号
-  if (yao.isMonthXunKong) { color = 'var(--yao-blue)'; withParens = true; }
-  // 日辰旬空：橙色+括号（优先月建）
-  else if (yao.isDayXunKong) { color = 'var(--yao-orange)'; withParens = true; }
-  // 月破：蓝色斜体
-  else if (yao.isMonthPo) { color = 'var(--yao-blue)'; isItalic = true; }
-  // 日破：橙色斜体
-  else if (yao.isDayPo) { color = 'var(--yao-orange)'; isItalic = true; }
+// ─── 通用地支标签（仅包含纯地支字 + 旬空括号 + 入墓虚线框/底色） ───
+// 合/破/绝/分数等右下角小注 由外层 BranchWithScore 渲染，不进入虚线框/底色范围
+interface BranchLabelProps {
+  branch: EarthlyBranch;
+  isMonthXK?: boolean;
+  isDayXK?: boolean;
+  isMonthPo?: boolean;
+  isDayPo?: boolean;
+  tombType?: string | null;
+  tombFill?: 'month' | 'day' | 'dong' | 'hua' | null; // 自身作为墓库容器
+  muted?: boolean;
+}
 
-  // 入墓底色
+function BranchLabel({
+  branch, isMonthXK, isDayXK, isMonthPo, isDayPo, tombType, tombFill, muted
+}: BranchLabelProps) {
+  const raw = BRANCH_LABEL[branch] ?? branch;
+  let color = muted ? 'var(--text-muted)' : 'var(--text-primary)';
+  let italic = false;
+  let tombCls = '';
   let bg = 'transparent';
-  if (yao.tombType === 'month') bg = 'var(--yao-blue-bg)';
-  else if (yao.tombType === 'day') bg = 'var(--yao-orange-bg)';
-  else if (yao.tombType === 'dong') bg = 'var(--yao-yellow-bg)';
-  else if (yao.tombType === 'hua') bg = 'rgba(167,139,250,0.1)';
-  else if (yao.tombType === 'fei') bg = 'var(--yao-gray-bg)';
 
-  const tombClass =
-    yao.tombType === 'month' ? 'tomb-blue' :
-    yao.tombType === 'day' ? 'tomb-orange' :
-    yao.tombType === 'dong' ? 'tomb-yellow' :
-    yao.tombType === 'hua' ? 'tomb-purple' :
-    yao.tombType === 'fei' ? 'tomb-gray' : '';
+  if      (isMonthXK) { color = 'var(--yao-blue)'; }
+  else if (isDayXK)   { color = 'var(--yao-orange)'; }
+  else if (isMonthPo) { color = 'var(--yao-blue)';   italic = true; }
+  else if (isDayPo)   { color = 'var(--yao-orange)'; italic = true; }
 
-  const text = withParens ? `（${label}）` : label;
+  if      (tombType === 'month') { tombCls = 'tomb-blue';   bg = 'var(--yao-blue-bg)'; }
+  else if (tombType === 'day')   { tombCls = 'tomb-orange'; bg = 'var(--yao-orange-bg)'; }
+  else if (tombType === 'dong')  { tombCls = 'tomb-yellow'; bg = 'var(--yao-yellow-bg)'; }
+  else if (tombType === 'hua')   { tombCls = 'tomb-purple'; bg = 'rgba(100,60,140,0.06)'; }
+  else if (tombType === 'fei')   { tombCls = 'tomb-gray';   bg = 'var(--yao-gray-bg)'; }
+
+  let fillCls = '';
+  if      (tombFill === 'month') fillCls = 'tomb-fill-blue';
+  else if (tombFill === 'day')   fillCls = 'tomb-fill-orange';
+  else if (tombFill === 'dong')  fillCls = 'tomb-fill-yellow';
+  else if (tombFill === 'hua')   fillCls = 'tomb-fill-purple';
+
+  // 旬空小圆圈：紧贴地支字右侧，月空蓝色，日空橙色（实心点示意）
+  const xkDot = isMonthXK
+    ? 'var(--yao-blue)'
+    : isDayXK
+      ? 'var(--yao-orange)'
+      : null;
 
   return (
-    <span
-      className={tombClass}
-      style={{
-        color,
-        fontStyle: isItalic ? 'italic' : 'normal',
-        background: bg,
-        padding: tombClass ? '1px 2px' : undefined,
-        position: 'relative',
-        display: 'inline-block',
-      }}
-    >
-      {text}
-      {/* 月合/日合小字 */}
-      {yao.isMonthHe && (
-        <sup style={{ color: 'var(--yao-blue)', fontSize: 9, marginLeft: 1 }}>合</sup>
-      )}
-      {yao.isDayHe && (
-        <sup style={{ color: 'var(--yao-orange)', fontSize: 9, marginLeft: 1 }}>合</sup>
+    <span className={tombCls} style={{
+      color, background: bg,
+      fontStyle: italic ? 'italic' : 'normal',
+      padding: tombCls ? '0 1px' : undefined,
+      whiteSpace: 'nowrap',
+      display: 'inline-flex', alignItems: 'baseline',
+    }}>
+      <span className={fillCls || undefined}>{raw}</span>
+      {xkDot && (
+        <span
+          aria-label={isMonthXK ? '月建旬空' : '日辰旬空'}
+          style={{
+            display: 'inline-block',
+            width: 7, height: 7,
+            borderRadius: '50%',
+            background: 'transparent',
+            border: `1.3px solid ${xkDot}`,
+            marginLeft: 3,
+            alignSelf: 'center',
+            flexShrink: 0,
+            boxSizing: 'border-box',
+          }}
+        />
       )}
     </span>
   );
 }
 
-// 变爻文字
-function ChangedYaoText({ yao }: { yao: YaoState }) {
+// ─── 变爻地支（含反吟/伏吟下划线 + 化墓底色 + 箭头标注）───
+// 绝/破/分数等小注由外层在 right-bottom 渲染
+function ChangedBranchLabel({ yao }: { yao: YaoState }) {
   if (!yao.changedBranch || !yao.changedFlags) return null;
   const f = yao.changedFlags;
-  const label = BRANCH_LABEL[yao.changedBranch] ?? yao.changedBranch;
-
+  const raw = BRANCH_LABEL[yao.changedBranch] ?? yao.changedBranch;
   let color = 'var(--text-secondary)';
   if (f.isHuaLinMonth || f.isHuaLinDay) color = 'var(--yao-orange)';
-
-  let underlineClass = '';
-  if (f.isFanYin) underlineClass = 'fanyin-line';
-  else if (f.isFuYin) underlineClass = 'fuyin-line';
-
-  // 箭头（回头生/克/化进/化退）
-  let arrowEl: React.ReactNode = null;
-  if (f.isHuiTouSheng) arrowEl = <span style={{ color: 'var(--yao-green)', fontSize: 12 }}> ←生</span>;
-  else if (f.isHuiTouKe) arrowEl = <span style={{ color: 'var(--yao-red)', fontSize: 12 }}> ←克</span>;
-  else if (f.isHuaJin) arrowEl = <span style={{ color: 'var(--text-secondary)', fontSize: 11 }}> ↑</span>;
-  else if (f.isHuaTui) arrowEl = <span style={{ color: 'var(--text-secondary)', fontSize: 11 }}> ↓</span>;
-
-  // 小字标注
-  const sups: React.ReactNode[] = [];
-  if (f.isHuaJue) sups.push(<sup key="jue" style={{ color: 'var(--text-muted)', fontSize: 9 }}>绝</sup>);
-  if (f.isHuaPo) sups.push(<sup key="po" style={{ color: 'var(--yao-orange)', fontSize: 9 }}>破</sup>);
-
+  const underCls = f.isFanYin ? 'fanyin-line' : f.isFuYin ? 'fuyin-line' : '';
+  const fillCls = yao.changedBranchTombFill === 'hua' ? 'tomb-fill-purple' : '';
+  let arrow: React.ReactNode = null;
+  if      (f.isHuiTouSheng) arrow = <span style={{ color: 'var(--yao-green)', fontSize: 9 }}> ←生</span>;
+  else if (f.isHuiTouKe)   arrow = <span style={{ color: 'var(--yao-red)',   fontSize: 9 }}> ←克</span>;
+  else if (f.isHuaJin)     arrow = <span style={{ color: 'var(--text-muted)', fontSize: 9 }}> ↑</span>;
+  else if (f.isHuaTui)     arrow = <span style={{ color: 'var(--text-muted)', fontSize: 9 }}> ↓</span>;
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-      <span className={underlineClass} style={{ color }}>{label}{sups}</span>
-      {arrowEl}
+    <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 1, whiteSpace: 'nowrap' }}>
+      <span className={[underCls, fillCls].filter(Boolean).join(' ') || undefined} style={{ color }}>
+        {raw}
+      </span>
+      {arrow}
     </span>
   );
 }
 
-// 爻线（考虑阴阳、动爻、暗动）
-function YaoLine({ isYangYao, isMoving, isHidden }: { isYangYao: boolean; isMoving: boolean; isHidden: boolean }) {
-  const solidLine = <div style={{ flex: 1, height: 4, background: 'var(--text-primary)', borderRadius: 2 }} />;
-  const gap = <div style={{ width: 8 }} />;
-  const halfLine = <div style={{ flex: 1, height: 4, background: 'var(--text-primary)', borderRadius: 2 }} />;
+// 变爻右下角小注：化绝 / 化破 / 变爻能量分
+function ChangedAnnotations({ yao, score }: { yao: YaoState; score?: number }) {
+  const f = yao.changedFlags;
+  if (!f && score === undefined) return null;
+  const items: React.ReactNode[] = [];
+  if (f?.isHuaJue) items.push(<span key="j" style={{ color: 'var(--text-muted)' }}>绝</span>);
+  if (f?.isHuaPo)  items.push(<span key="p" style={{ color: 'var(--yao-orange)' }}>破</span>);
+  if (score !== undefined) {
+    items.push(
+      <span key="sc" style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+        {score > 0 ? '+' : ''}{score}
+      </span>
+    );
+  }
+  if (items.length === 0) return null;
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'flex-end', gap: 1,
+      fontSize: 9, lineHeight: 1, marginBottom: 1,
+    }}>
+      {items}
+    </span>
+  );
+}
 
-  if (isMoving) {
-    // 动爻：老阳（阳变阴）用断线+实心圆，老阴（阴变阳）用断线+空心圆
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flex: 1 }}>
-        {halfLine}{gap}{halfLine}
-        <div style={{
-          width: 14, height: 14, borderRadius: '50%',
-          background: isYangYao ? 'var(--moving-yao)' : 'transparent',
-          border: '2px solid var(--moving-yao)',
-          flexShrink: 0, marginLeft: 2,
-        }} />
-      </div>
+// ─── 地支 + 右下角小注（合/破/分数）───
+interface BranchWithScoreProps extends BranchLabelProps {
+  score?: number;
+  isMonthHe?: boolean;
+  isDayHe?: boolean;
+  smaller?: boolean; // 伏神行用更小字号
+}
+function BranchWithScore(props: BranchWithScoreProps) {
+  const { score, isMonthHe, isDayHe, isMonthPo, isDayPo, smaller, ...branchProps } = props;
+  const anno: React.ReactNode[] = [];
+  if (isMonthHe) anno.push(<span key="mh" style={{ color: 'var(--yao-blue)'   }}>合</span>);
+  if (isDayHe)   anno.push(<span key="dh" style={{ color: 'var(--yao-orange)' }}>合</span>);
+  if (isMonthPo) anno.push(<span key="mp" style={{ color: 'var(--yao-blue)'   }}>破</span>);
+  if (isDayPo)   anno.push(<span key="dp" style={{ color: 'var(--yao-orange)' }}>破</span>);
+  if (score !== undefined) {
+    anno.push(
+      <span key="sc" style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+        {score > 0 ? '+' : ''}{score}
+      </span>
     );
-  }
-  if (isHidden) {
-    // 暗动：被日辰冲的阴爻，断线+虚线圆
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flex: 1 }}>
-        {halfLine}{gap}{halfLine}
-        <div style={{
-          width: 14, height: 14, borderRadius: '50%',
-          border: '2px dashed var(--yao-orange)',
-          flexShrink: 0, marginLeft: 2,
-        }} />
-      </div>
-    );
-  }
-  // 静爻：阳爻实线，阴爻断线
-  if (isYangYao) {
-    return solidLine;
   }
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 4, flex: 1 }}>
-      {halfLine}{gap}{halfLine}
+    <div style={{ display: 'inline-flex', alignItems: 'flex-end', gap: 2 }}>
+      <BranchLabel {...branchProps} isMonthPo={isMonthPo} isDayPo={isDayPo} />
+      {anno.length > 0 && (
+        <span style={{
+          display: 'inline-flex', alignItems: 'flex-end', gap: 1,
+          fontSize: smaller ? 8 : 9, lineHeight: 1, marginBottom: 1,
+        }}>
+          {anno}
+        </span>
+      )}
     </div>
   );
 }
 
-// 能量得分
-function EnergyScore({ score }: { score: number }) {
-  const cls = score > 0 ? 'score-positive' : score < 0 ? 'score-negative' : 'score-zero';
-  const sign = score > 0 ? '+' : '';
-  return <span className={cls}>{sign}{score}</span>;
+// ─── 本卦爻线 ───
+function YaoLine({ isYangYao }: { isYangYao: boolean }) {
+  const ink = 'var(--text-primary)';
+  const h = 5;
+  if (isYangYao) return <div style={{ height: h, background: ink, borderRadius: 3, width: '100%' }} />;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 7, width: '100%' }}>
+      <div style={{ flex: 1, height: h, background: ink, borderRadius: 3 }} />
+      <div style={{ flex: 1, height: h, background: ink, borderRadius: 3 }} />
+    </div>
+  );
 }
 
-export function YaoRow({ yao, isYongShen }: Props) {
+// ─── 变卦爻线（稍细稍淡）───
+function ChangedLine({ isYang }: { isYang: boolean }) {
+  const ink = 'var(--text-secondary)';
+  const h = 4;
+  if (isYang) return <div style={{ height: h, background: ink, borderRadius: 2, width: '100%', opacity: 0.6 }} />;
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '40px 44px 1fr 30px 60px',
-        gap: 6,
-        alignItems: 'center',
-        padding: '6px 4px',
-        borderRadius: 6,
-        background: isYongShen ? 'rgba(212,160,23,0.06)' : undefined,
-        borderLeft: isYongShen ? '2px solid var(--gold-dim)' : '2px solid transparent',
-      }}
-    >
-      {/* 六神 */}
-      <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center' }}>
-        {yao.liuShen}
-      </div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', opacity: 0.6 }}>
+      <div style={{ flex: 1, height: h, background: ink, borderRadius: 2 }} />
+      <div style={{ flex: 1, height: h, background: ink, borderRadius: 2 }} />
+    </div>
+  );
+}
 
-      {/* 六亲 */}
-      <div style={{ fontSize: 12, color: 'var(--text-secondary)', textAlign: 'center' }}>
-        {yao.relative}
-      </div>
+// ─── 动爻标记 ───
+function MovingMark({ isMoving, isHidden }: { isMoving: boolean; isHidden: boolean }) {
+  if (isMoving) {
+    return <span style={{ color: 'var(--gold-mid)', fontSize: 13, fontWeight: 700, lineHeight: 1 }}>→</span>;
+  }
+  if (isHidden) {
+    return (
+      <div style={{
+        width: 12, height: 12, borderRadius: '50%',
+        border: '1.5px dashed var(--yao-orange)',
+      }} />
+    );
+  }
+  return null;
+}
 
-      {/* 本卦爻 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, position: 'relative' }}>
-        <YaoLine isYangYao={yao.isYangYao} isMoving={yao.isMoving} isHidden={yao.isHidden} />
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 48 }}>
-          <YaoBranchText yao={yao} />
-          <EnergyScore score={yao.energyScore} />
+// ─── 单行网格基础样式 ───
+const gridBase: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: COL,
+  gap: GAP,
+  alignItems: 'center',
+};
+
+export function YaoRow({ yao, isYongShen, showChangedLine }: Props) {
+  const hasFuShen = !!yao.fuShenBranch;
+  const rightIsYang = yao.isMoving ? (yao.changedIsYang ?? !yao.isYangYao) : yao.isYangYao;
+  const rightRelative = yao.isMoving ? (yao.changedRelative ?? yao.relative) : yao.relative;
+  const rightScore = yao.isMoving ? yao.changedEnergyScore : yao.energyScore;
+
+  return (
+    <div style={{
+      borderLeft: isYongShen ? '2px solid var(--gold-mid)' : '2px solid transparent',
+      background: isYongShen ? 'rgba(154,111,10,0.04)' : undefined,
+      // 固定每爻高度，让有 / 无伏神的"主爻线"间距一致
+      minHeight: 52,
+      paddingTop: 5,
+      paddingBottom: 5,
+      display: 'flex',
+      flexDirection: 'column',
+    }}>
+      {/* ── 主爻行 ── */}
+      <div style={{ ...gridBase, minHeight: 30 }}>
+
+        {/* 世/应（左侧，纯文字） */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1, lineHeight: 1 }}>
+          {yao.isWorldLine    && <span className="badge-world">世</span>}
+          {yao.isResponseLine && <span className="badge-response">应</span>}
+        </div>
+
+        {/* 六神 */}
+        <div style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center' }}>
+          {yao.liuShen}
+        </div>
+
+        {/* 六亲 */}
+        <div style={{ fontSize: 11, color: 'var(--text-secondary)', textAlign: 'right', paddingRight: 3 }}>
+          {yao.relative}
+        </div>
+
+        {/* 地支 + 能量分数（左对齐，留出与六亲列的间距） */}
+        <div style={{ paddingLeft: 24, display: 'flex', justifyContent: 'flex-start' }}>
+          <BranchWithScore
+            branch={yao.yaoBranch}
+            isMonthXK={yao.isMonthXunKong}
+            isDayXK={yao.isDayXunKong}
+            isMonthPo={yao.isMonthPo}
+            isDayPo={yao.isDayPo}
+            isMonthHe={yao.isMonthHe}
+            isDayHe={yao.isDayHe}
+            tombType={yao.tombType}
+            tombFill={yao.yaoBranchTombFill ?? null}
+            score={yao.energyScore}
+          />
+        </div>
+
+        {/* 本卦爻线 */}
+        <div style={{ display: 'flex', alignItems: 'center', paddingRight: 2 }}>
+          <YaoLine isYangYao={yao.isYangYao} />
+        </div>
+
+        {/* 动爻标记 */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <MovingMark isMoving={yao.isMoving} isHidden={yao.isHidden} />
+        </div>
+
+        {/* 分隔列（仅留间距，去除可见竖线，让排盘更清爽） */}
+        <span />
+
+        {/* 变卦爻线 */}
+        <div style={{ display: 'flex', alignItems: 'center', paddingLeft: 2 }}>
+          {showChangedLine && <ChangedLine isYang={rightIsYang} />}
+        </div>
+
+        {/* 变六亲 */}
+        <div style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'left', paddingLeft: 2 }}>
+          {showChangedLine ? rightRelative : ''}
+        </div>
+
+        {/* 变地支 + 右下角小注 */}
+        <div style={{ paddingLeft: 2 }}>
+          {showChangedLine && (
+            yao.isMoving
+              ? <span style={{ display: 'inline-flex', alignItems: 'flex-end', gap: 2 }}>
+                  <ChangedBranchLabel yao={yao} />
+                  <ChangedAnnotations yao={yao} score={rightScore} />
+                </span>
+              : <span style={{ fontSize: 11, color: 'var(--text-muted)', opacity: 0.45 }}>
+                  {BRANCH_LABEL[yao.yaoBranch] ?? yao.yaoBranch}
+                </span>
+          )}
         </div>
       </div>
 
-      {/* 世/应 */}
-      <div style={{ textAlign: 'center' }}>
-        {yao.isWorldLine && <span className="badge-world">世</span>}
-        {yao.isResponseLine && <span className="badge-response">应</span>}
-      </div>
-
-      {/* 变卦 */}
-      <div style={{ textAlign: 'right', fontSize: 12 }}>
-        {yao.isMoving && <ChangedYaoText yao={yao} />}
-      </div>
+      {/* ── 伏神行（有伏神时，整体更紧凑、字号更小） ── */}
+      {hasFuShen && (
+        <div style={{ ...gridBase, marginTop: 1, fontSize: 10 }}>
+          {/* 世应空 */}
+          <span />
+          {/* 六神空 */}
+          <span style={{ fontSize: 9, color: 'var(--text-muted)', textAlign: 'center' }}>伏</span>
+          {/* 伏神六亲（不再斜体） */}
+          <div style={{ fontSize: 9, color: 'var(--text-muted)', textAlign: 'right', paddingRight: 3 }}>
+            {yao.fuShenRelative}
+          </div>
+          {/* 伏神地支 + 分数（与本卦地支同列、左对齐，整体小一号） */}
+          <div style={{ paddingLeft: 24, display: 'flex', justifyContent: 'flex-start', fontSize: 11 }}>
+            <BranchWithScore
+              branch={yao.fuShenBranch!}
+              isMonthXK={yao.fuShenIsMonthXK}
+              isDayXK={yao.fuShenIsDayXK}
+              isMonthPo={yao.fuShenIsMonthPo}
+              isDayPo={yao.fuShenIsDayPo}
+              isMonthHe={yao.fuShenIsMonthHe}
+              isDayHe={yao.fuShenIsDayHe}
+              tombType={null}
+              muted
+              smaller
+              score={yao.fuShenEnergyScore}
+            />
+          </div>
+          {/* 其余列空 */}
+          <span /><span /><span /><span /><span /><span />
+        </div>
+      )}
     </div>
   );
 }
