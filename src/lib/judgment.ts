@@ -287,6 +287,12 @@ function getDongYaoEffectDetail(
     parts.push('本爻为暗动');
   }
 
+  // 1.x) target 自身已化旺/化废 → 结论已定，不再看其他动爻、三合局影响
+  if (conclusion !== null) {
+    parts.push(`最终：${conclusion}`);
+    return { text: parts.join('；'), conclusion };
+  }
+
   const targetEl = BRANCH_ELEMENT[target.yaoBranch];
 
   // 1.5) 若本爻自身即为动爻分析选出的「重点动爻」，且 step 1 未给出结论，
@@ -336,11 +342,21 @@ function getDongYaoEffectDetail(
           sanHeDelta = -1;
         }
       } else if (SHENG_MAP[targetEl] === zhongEl) {
-        parts.push(`存在${sanHe.element}局三合，本爻生中神${sanHe.zhongShen}，泄气`);
-        sanHeDelta = -0.5;
+        // 本爻 生 中神：仅动/暗动 target 算泄气；静爻/伏爻不能主动作用，不计 delta
+        if (target.isMoving || target.isHidden) {
+          parts.push(`存在${sanHe.element}局三合，本爻生中神${sanHe.zhongShen}，泄气`);
+          sanHeDelta = -0.5;
+        } else {
+          parts.push(`存在${sanHe.element}局三合，本爻为${target.isFuShenView ? '伏神' : '静爻'}，不能主动作用于中神${sanHe.zhongShen}`);
+        }
       } else if (KE_MAP[targetEl] === zhongEl) {
-        parts.push(`存在${sanHe.element}局三合，本爻克中神${sanHe.zhongShen}，耗力`);
-        sanHeDelta = -0.5;
+        // 本爻 克 中神：同上
+        if (target.isMoving || target.isHidden) {
+          parts.push(`存在${sanHe.element}局三合，本爻克中神${sanHe.zhongShen}，耗力`);
+          sanHeDelta = -0.5;
+        } else {
+          parts.push(`存在${sanHe.element}局三合，本爻为${target.isFuShenView ? '伏神' : '静爻'}，不能主动作用于中神${sanHe.zhongShen}`);
+        }
       } else {
         parts.push(`存在${sanHe.element}局三合，中神${sanHe.zhongShen}与本爻无直接生克`);
       }
