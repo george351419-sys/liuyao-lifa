@@ -70,7 +70,12 @@ export function buildHexagramResult(input: HexagramInput, yaoCodes: YaoType[], g
 
   for (const yao of yaos) {
     if (yao.isMoving && yao.changedBranch) {
-      yao.changedFlags = detectChangedFlags(yao.yaoBranch, yao.changedBranch, ganzhi.monthBranch, ganzhi.dayBranch, yaos);
+      yao.changedFlags = detectChangedFlags(
+        yao.yaoBranch, yao.changedBranch,
+        ganzhi.monthBranch, ganzhi.dayBranch,
+        ganzhi.monthXunKong, ganzhi.dayXunKong,
+        yaos,
+      );
       yao.finalState = calcFinalState(yao.changedFlags);
     }
   }

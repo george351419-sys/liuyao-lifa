@@ -13,8 +13,8 @@ interface Props {
 export const COL = '13px 20px 28px minmax(54px,1fr) minmax(40px,1fr) 16px 3px minmax(40px,1fr) 22px minmax(65px,1.5fr)';
 export const GAP = 2;
 
-// ─── 通用地支标签（仅包含纯地支字 + 旬空括号 + 入墓虚线框/底色） ───
-// 合/破/绝/分数等右下角小注 由外层 BranchWithScore 渲染，不进入虚线框/底色范围
+// ─── 通用地支标签（仅包含纯地支字 + 入墓虚线框/底色） ───
+// 合/破/空/绝/分数等右下角小注 由外层 BranchWithScore 渲染，不进入虚线框/底色范围
 interface BranchLabelProps {
   branch: EarthlyBranch;
   isMonthXK?: boolean;
@@ -52,13 +52,6 @@ function BranchLabel({
   else if (tombFill === 'dong')  fillCls = 'tomb-fill-yellow';
   else if (tombFill === 'hua')   fillCls = 'tomb-fill-purple';
 
-  // 旬空小圆圈：紧贴地支字右侧，月空蓝色，日空橙色（实心点示意）
-  const xkDot = isMonthXK
-    ? 'var(--yao-blue)'
-    : isDayXK
-      ? 'var(--yao-orange)'
-      : null;
-
   return (
     <span className={tombCls} style={{
       color, background: bg,
@@ -68,22 +61,6 @@ function BranchLabel({
       display: 'inline-flex', alignItems: 'baseline',
     }}>
       <span className={fillCls || undefined}>{raw}</span>
-      {xkDot && (
-        <span
-          aria-label={isMonthXK ? '月建旬空' : '日辰旬空'}
-          style={{
-            display: 'inline-block',
-            width: 7, height: 7,
-            borderRadius: '50%',
-            background: 'transparent',
-            border: `1.3px solid ${xkDot}`,
-            marginLeft: 3,
-            alignSelf: 'center',
-            flexShrink: 0,
-            boxSizing: 'border-box',
-          }}
-        />
-      )}
     </span>
   );
 }
@@ -95,7 +72,9 @@ function ChangedBranchLabel({ yao }: { yao: YaoState }) {
   const f = yao.changedFlags;
   const raw = BRANCH_LABEL[yao.changedBranch] ?? yao.changedBranch;
   let color = 'var(--text-secondary)';
-  if (f.isHuaLinMonth || f.isHuaLinDay) color = 'var(--yao-orange)';
+  if (f.isHuaMonthXunKong) color = 'var(--yao-blue)';
+  else if (f.isHuaDayXunKong) color = 'var(--yao-orange)';
+  else if (f.isHuaLinMonth || f.isHuaLinDay) color = 'var(--yao-orange)';
   const underCls = f.isFanYin ? 'fanyin-line' : f.isFuYin ? 'fuyin-line' : '';
   const fillCls = yao.changedBranchTombFill === 'hua' ? 'tomb-fill-purple' : '';
   let arrow: React.ReactNode = null;
@@ -113,11 +92,16 @@ function ChangedBranchLabel({ yao }: { yao: YaoState }) {
   );
 }
 
-// 变爻右下角小注：化绝 / 化破 / 变爻能量分
+// 变爻右下角小注：空 / 化绝 / 化破 / 变爻能量分
 function ChangedAnnotations({ yao, score }: { yao: YaoState; score?: number }) {
   const f = yao.changedFlags;
   if (!f && score === undefined) return null;
   const items: React.ReactNode[] = [];
+  if (f?.isHuaMonthXunKong) {
+    items.push(<span key="xk" style={{ color: 'var(--yao-blue)' }} aria-label="月建旬空">空</span>);
+  } else if (f?.isHuaDayXunKong) {
+    items.push(<span key="xk" style={{ color: 'var(--yao-orange)' }} aria-label="日辰旬空">空</span>);
+  }
   if (f?.isHuaJue) items.push(<span key="j" style={{ color: 'var(--text-muted)' }}>绝</span>);
   if (f?.isHuaPo)  items.push(<span key="p" style={{ color: 'var(--yao-orange)' }}>破</span>);
   if (score !== undefined) {
@@ -138,7 +122,7 @@ function ChangedAnnotations({ yao, score }: { yao: YaoState; score?: number }) {
   );
 }
 
-// ─── 地支 + 右下角小注（合/破/分数）───
+// ─── 地支 + 右下角小注（空/合/破/分数）───
 interface BranchWithScoreProps extends BranchLabelProps {
   score?: number;
   isMonthHe?: boolean;
@@ -146,8 +130,10 @@ interface BranchWithScoreProps extends BranchLabelProps {
   smaller?: boolean; // 伏神行用更小字号
 }
 function BranchWithScore(props: BranchWithScoreProps) {
-  const { score, isMonthHe, isDayHe, isMonthPo, isDayPo, smaller, ...branchProps } = props;
+  const { score, isMonthHe, isDayHe, isMonthPo, isDayPo, isMonthXK, isDayXK, smaller, ...branchProps } = props;
   const anno: React.ReactNode[] = [];
+  if (isMonthXK) anno.push(<span key="xk" style={{ color: 'var(--yao-blue)' }} aria-label="月建旬空">空</span>);
+  else if (isDayXK) anno.push(<span key="xk" style={{ color: 'var(--yao-orange)' }} aria-label="日辰旬空">空</span>);
   if (isMonthHe) anno.push(<span key="mh" style={{ color: 'var(--yao-blue)'   }}>合</span>);
   if (isDayHe)   anno.push(<span key="dh" style={{ color: 'var(--yao-orange)' }}>合</span>);
   if (isMonthPo) anno.push(<span key="mp" style={{ color: 'var(--yao-blue)'   }}>破</span>);
@@ -161,7 +147,7 @@ function BranchWithScore(props: BranchWithScoreProps) {
   }
   return (
     <div style={{ display: 'inline-flex', alignItems: 'flex-end', gap: 2 }}>
-      <BranchLabel {...branchProps} isMonthPo={isMonthPo} isDayPo={isDayPo} />
+      <BranchLabel {...branchProps} isMonthXK={isMonthXK} isDayXK={isDayXK} isMonthPo={isMonthPo} isDayPo={isDayPo} />
       {anno.length > 0 && (
         <span style={{
           display: 'inline-flex', alignItems: 'flex-end', gap: 1,

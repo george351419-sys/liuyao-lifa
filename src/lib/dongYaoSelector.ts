@@ -62,6 +62,7 @@ function wangShuaiBySelf(y: YaoState): { ws: WangShuai; reason: string } | null 
     if (f?.isHuaJue)   subs.push('化绝');
     if (f?.isHuaPo)    subs.push('化破');
     if (f?.isHuaTui)   subs.push('化退神');
+    if (f?.isHuaMonthXunKong || f?.isHuaDayXunKong) subs.push('化空');
     const label = subs.length > 0 ? subs.join('、') : '化废';
     return { ws: '衰', reason: `${y.yaoBranch} ${label}，能量减弱，定为衰败` };
   }

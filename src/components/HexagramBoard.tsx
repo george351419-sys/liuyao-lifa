@@ -182,12 +182,12 @@ function LegendCollapseRow({ open, onToggle }: { open: boolean; onToggle: () => 
           display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px 14px',
         }}>
           <div style={itemStyle}>
-            <HollowCircle color="var(--yao-blue)" />
-            <span>蓝色空心实线圆：月建旬空</span>
+            <span style={{ color: 'var(--yao-blue)', fontWeight: 500, fontSize: 12 }}>空</span>
+            <span>蓝色「空」：月建旬空</span>
           </div>
           <div style={itemStyle}>
-            <HollowCircle color="var(--yao-orange)" />
-            <span>橙色空心实线圆：日辰旬空</span>
+            <span style={{ color: 'var(--yao-orange)', fontWeight: 500, fontSize: 12 }}>空</span>
+            <span>橙色「空」：日辰旬空</span>
           </div>
           <div style={itemStyle}>
             <DashedCircle />
@@ -216,20 +216,6 @@ function LegendCollapseRow({ open, onToggle }: { open: boolean; onToggle: () => 
         </div>
       )}
     </>
-  );
-}
-
-function HollowCircle({ color }: { color: string }) {
-  return (
-    <span style={{
-      display: 'inline-block',
-      width: 8, height: 8,
-      borderRadius: '50%',
-      border: `1.3px solid ${color}`,
-      background: 'transparent',
-      flexShrink: 0,
-      boxSizing: 'border-box',
-    }} />
   );
 }
 

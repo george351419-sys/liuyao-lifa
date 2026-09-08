@@ -154,6 +154,7 @@ function describeChangedSubtypes(target: YaoState): string {
   if (f.isHuaTui)   feiLabels.push('化退神');
   if (f.isHuaPo)    feiLabels.push('化破');
   if (f.isHuaJue)   feiLabels.push('化绝');
+  if (f.isHuaMonthXunKong || f.isHuaDayXunKong) feiLabels.push('化空');
   // 化旺类（增益能量）
   const wangLabels: string[] = [];
   if (f.isHuiTouSheng) wangLabels.push('化回头生');

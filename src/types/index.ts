@@ -35,6 +35,8 @@ export interface ChangedYaoFlags {
   isHuaPo: boolean;       // 化破
   isHuaLinMonth: boolean; // 化临月建
   isHuaLinDay: boolean;   // 化临日辰
+  isHuaMonthXunKong: boolean; // 变爻月建旬空
+  isHuaDayXunKong: boolean;   // 变爻日辰旬空
 }
 
 // 入墓类型

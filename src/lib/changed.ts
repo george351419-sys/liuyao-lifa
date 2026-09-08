@@ -1,13 +1,15 @@
 import type { ChangedYaoFlags, YaoFinalState, YaoState } from '../types';
 import type { EarthlyBranch } from '../data/constants';
 import { CHONG_MAP, BRANCH_ELEMENT, SHENG_MAP, KE_MAP, JUE_DI, HUA_JIN_MAP, HUA_TUI_MAP } from '../data/constants';
-import { isMonthPoCheck, isDayPoCheck } from './special';
+import { isMonthPoCheck, isDayPoCheck, isInXunKong } from './special';
 
 export function detectChangedFlags(
   movingBranch: EarthlyBranch,
   changedBranch: EarthlyBranch,
   monthBranch: EarthlyBranch,
   dayBranch: EarthlyBranch,
+  monthXunKong: [EarthlyBranch, EarthlyBranch],
+  dayXunKong: [EarthlyBranch, EarthlyBranch],
   _allYaos: YaoState[]
 ): ChangedYaoFlags {
   const mEl = BRANCH_ELEMENT[movingBranch];
@@ -23,6 +25,8 @@ export function detectChangedFlags(
   const isHuaPo = isMonthPoCheck(changedBranch, monthBranch) || isDayPoCheck(changedBranch, dayBranch);
   const isHuaLinMonth = changedBranch === monthBranch;
   const isHuaLinDay = changedBranch === dayBranch;
+  const isHuaMonthXunKong = isInXunKong(changedBranch, monthXunKong);
+  const isHuaDayXunKong = isInXunKong(changedBranch, dayXunKong);
 
   return {
     isFanYin,
@@ -35,12 +39,15 @@ export function detectChangedFlags(
     isHuaPo,
     isHuaLinMonth,
     isHuaLinDay,
+    isHuaMonthXunKong,
+    isHuaDayXunKong,
   };
 }
 
 export function calcFinalState(flags: ChangedYaoFlags): YaoFinalState {
   const isFei =
-    flags.isHuiTouKe || flags.isHuaTui || flags.isHuaPo || flags.isHuaJue;
+    flags.isHuiTouKe || flags.isHuaTui || flags.isHuaPo || flags.isHuaJue
+    || flags.isHuaMonthXunKong || flags.isHuaDayXunKong;
   const isWang =
     flags.isHuiTouSheng || flags.isHuaJin || flags.isHuaLinDay || flags.isHuaLinMonth;
 
