@@ -1,4 +1,4 @@
-import type { ChangedYaoFlags, YaoFinalState, YaoState } from '../types';
+import type { ChangedYaoFlags, YaoFinalState } from '../types';
 import type { EarthlyBranch } from '../data/constants';
 import { CHONG_MAP, BRANCH_ELEMENT, SHENG_MAP, KE_MAP, JUE_DI, HUA_JIN_MAP, HUA_TUI_MAP } from '../data/constants';
 import { isMonthPoCheck, isDayPoCheck, isInXunKong } from './special';
@@ -10,7 +10,6 @@ export function detectChangedFlags(
   dayBranch: EarthlyBranch,
   monthXunKong: [EarthlyBranch, EarthlyBranch],
   dayXunKong: [EarthlyBranch, EarthlyBranch],
-  _allYaos: YaoState[]
 ): ChangedYaoFlags {
   const mEl = BRANCH_ELEMENT[movingBranch];
   const cEl = BRANCH_ELEMENT[changedBranch];

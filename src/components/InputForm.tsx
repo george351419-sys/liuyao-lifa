@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { CATEGORY_TIPS } from '../data/constants';
 import type {
   Category, DivinationMethod, HexagramInput, DongYaoSelectionMode,
@@ -67,9 +67,6 @@ export function InputForm({ onSubmit, loading }: Props) {
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [dongYaoMode, setDongYaoMode] = useState<DongYaoSelectionMode>('average');
-
-  // Clear coinsInput when method changes to avoid cross-method stale data
-  useEffect(() => { setCoinsInput(''); }, [method]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -216,7 +213,7 @@ export function InputForm({ onSubmit, loading }: Props) {
                 name="method"
                 value={m.value}
                 checked={method === m.value}
-                onChange={() => setMethod(m.value)}
+                onChange={() => { setMethod(m.value); setCoinsInput(''); }}
                 style={{ marginTop: 2, accentColor: 'var(--gold-mid)' }}
               />
               <div>

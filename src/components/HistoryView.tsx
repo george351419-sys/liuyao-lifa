@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { HexagramResult, HexagramInput, YaoType, DongYaoSelectionMode } from '../types';
 import { dateToGanzhi } from '../lib/ganzhi';
 import { modernCoin, ancientCoin, numberMethod } from '../lib/divination';
@@ -73,14 +73,12 @@ function rebuildResult(entry: HistoryEntry): HexagramResult {
 }
 
 export function HistoryView({ onBack }: Props) {
-  const [list, setList] = useState<HistoryEntry[]>([]);
+  const [list, setList] = useState<HistoryEntry[]>(loadHistory);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [editMatter, setEditMatter] = useState('');
   const [editFeedback, setEditFeedback] = useState('');
   const [editAccuracy, setEditAccuracy] = useState<AccuracyMark | undefined>(undefined);
-
-  useEffect(() => { setList(loadHistory()); }, []);
 
   const active = list.find(e => e.id === activeId) ?? null;
 

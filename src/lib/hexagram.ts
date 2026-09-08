@@ -74,7 +74,6 @@ export function buildHexagramResult(input: HexagramInput, yaoCodes: YaoType[], g
         yao.yaoBranch, yao.changedBranch,
         ganzhi.monthBranch, ganzhi.dayBranch,
         ganzhi.monthXunKong, ganzhi.dayXunKong,
-        yaos,
       );
       yao.finalState = calcFinalState(yao.changedFlags);
     }
