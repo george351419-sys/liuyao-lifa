@@ -102,15 +102,47 @@ src/
 └── App.tsx            # 应用入口
 ```
 
+## 在线地址
+
+> 部署到 Vercel 后，将实际域名回填到这里，例如：
+> `https://liuyao-lifa.vercel.app`
+
 ## 部署
 
 项目已配置 [Vercel](https://vercel.com)（见 `vercel.json`）：
 
+- 框架：Vite
 - 构建命令：`npm run build`
 - 输出目录：`dist`
-- 框架：Vite
 
-也可构建 `dist/` 后部署至任意静态托管服务。
+### 部署到 Vercel（Git 集成，推荐）
+
+1. 打开 [vercel.com/new](https://vercel.com/new)，用 GitHub 账号登录。
+2. **Add GitHub Account** 授权 Vercel 访问仓库，选择 **Only select repositories** 并勾选 `george351419-sys/liuyao-lifa`（私有仓库亦可）。
+3. 点 **Import** 导入该仓库。
+4. 配置页会自动读取 `vercel.json`，通常无需改动，确认以下三项后点 **Deploy**：
+   - Framework Preset：`Vite`
+   - Build Command：`npm run build`
+   - Output Directory：`dist`
+5. 首次部署完成后即获得线上域名；此后每次 push 到 `main` 都会自动构建并部署，PR 会生成 preview 预览地址。
+
+### 部署到其他静态托管
+
+构建 `dist/` 后可部署至任意静态托管服务：
+
+```bash
+npm run build
+```
+
+将 `dist/` 目录作为站点根目录上传即可。
+
+## 持续集成
+
+`.github/workflows/ci.yml` 在每次 push / PR 到 `main` 时自动执行：
+
+- `npm ci` 安装依赖
+- `npm run lint` 代码检查
+- `npm run build` 类型检查 + 生产构建
 
 ## 许可
 
