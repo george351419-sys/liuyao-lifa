@@ -4,7 +4,7 @@ import { dateToGanzhi } from '../lib/ganzhi';
 import { modernCoin, ancientCoin, numberMethod } from '../lib/divination';
 import { buildHexagramResult } from '../lib/hexagram';
 import {
-  loadHistory, updateEntry, removeEntry,
+  loadHistory, updateEntry, removeEntry, FEEDBACK_MAX_LENGTH,
   type HistoryEntry, type AccuracyMark,
 } from '../lib/historyStore';
 import { GanzhiBar } from './GanzhiBar';
@@ -297,14 +297,14 @@ export function HistoryView({ onBack }: Props) {
             </div>
             <textarea
               className="input-field"
-              maxLength={500}
+              maxLength={FEEDBACK_MAX_LENGTH}
               style={{ resize: 'vertical', minHeight: 100, width: '100%' }}
               value={editFeedback}
               onChange={e => setEditFeedback(e.target.value)}
               placeholder="记录事后发生的情况、应验或不应验之处…"
             />
             <div style={{ textAlign: 'right', fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-              {editFeedback.length}/500
+              {editFeedback.length}/{FEEDBACK_MAX_LENGTH}
             </div>
           </>
         )}

@@ -2,6 +2,7 @@
 import type { Category, DivinationMethod, DongYaoSelectionMode } from '../types';
 
 const STORAGE_KEY = 'liuyao_history';
+export const FEEDBACK_MAX_LENGTH = 30000;
 
 // 应验程度
 export type AccuracyMark = 'accurate' | 'inaccurate';

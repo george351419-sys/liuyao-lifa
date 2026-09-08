@@ -4,7 +4,7 @@ import type { HexagramInput, HexagramResult } from './types';
 import { dateToGanzhi } from './lib/ganzhi';
 import { modernCoin, ancientCoin, numberMethod } from './lib/divination';
 import { buildHexagramResult } from './lib/hexagram';
-import { addEntry } from './lib/historyStore';
+import { addEntry, FEEDBACK_MAX_LENGTH } from './lib/historyStore';
 import { InputForm } from './components/InputForm';
 import { GanzhiBar } from './components/GanzhiBar';
 import { HexagramBoard } from './components/HexagramBoard';
@@ -365,14 +365,14 @@ export default function App() {
                 </div>
                 <textarea
                   className="input-field"
-                  maxLength={500}
+                  maxLength={FEEDBACK_MAX_LENGTH}
                   style={{ resize: 'vertical', minHeight: 90, width: '100%' }}
-                  placeholder="记录事后发生的情况、应验或不应验之处（最多 500 字）"
+                  placeholder={`记录事后发生的情况、应验或不应验之处（最多 ${FEEDBACK_MAX_LENGTH} 字）`}
                   value={feedback}
                   onChange={e => setFeedback(e.target.value)}
                 />
                 <div style={{ textAlign: 'right', fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                  {feedback.length}/500
+                  {feedback.length}/{FEEDBACK_MAX_LENGTH}
                 </div>
               </div>
 
